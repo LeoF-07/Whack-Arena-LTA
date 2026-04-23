@@ -60,13 +60,13 @@ class HealthBar extends PositionComponent with HasGameReference<PVPGame> {
     return '''
       <svg width="250" height="70" viewBox="0 0 250 70" xmlns="http://www.w3.org/2000/svg">
         <defs>
-          <linearGradient id="healthGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <linearGradient id="healthGradient" x1="${opponent ? 100 : 0}%" y1="0%" x2="${opponent ? 0 : 100}%" y2="0%">
             <stop offset="0%" stop-color="#8B0000" />
             <stop offset="50%" stop-color="#FF0000" />
             <stop offset="100%" stop-color="#FF4500" />
           </linearGradient>
       
-          <linearGradient id="gloss" x1="0%" y1="0%" x2="0%" y2="100%">
+          <linearGradient id="gloss" x1="0%" y1="${opponent ? 100 : 0}%" x2="0%" y2="${opponent ? 0 : 100}%">
             <stop offset="0%" stop-color="white" stop-opacity="0.4" />
             <stop offset="100%" stop-color="black" stop-opacity="0.2" />
           </linearGradient>
@@ -80,18 +80,37 @@ class HealthBar extends PositionComponent with HasGameReference<PVPGame> {
       
         <rect x="25" y="30" width="200" height="10" rx="2" fill="#111" />
       
-        <rect x="25" y="30" width="$hpWidth" height="10" rx="2" fill="url(#healthGradient)">
+        <rect x="${opponent ? 25 + (200 - hpWidth) : 25}" y="30" width="$hpWidth" height="10" rx="2" fill="url(#healthGradient)">
           <animate attributeName="fill-opacity" values="1;0.8;1" dur="1.2s" repeatCount="indefinite" />
         </rect>
       
-        <rect x="25" y="30" width="$hpWidth" height="5" rx="2" fill="url(#gloss)" />
+        <rect x="${opponent ? 25 + (200 - hpWidth) : 25}" y="30" width="$hpWidth" height="5" rx="2" fill="url(#gloss)" />
       
-        <path d="M15 35 L20 30 L25 35 L20 40 Z"
+        ${
+          opponent ?
+          '''
+            <path d="M225 35 L230 30 L235 35 L230 40 Z"
               fill="#FF0000" stroke="#FFD700" stroke-width="1">
-          <animate attributeName="stroke-width" values="1;2;1" dur="1s" repeatCount="indefinite" />
-        </path>
-      
-        <circle cx="230" cy="35" r="3" fill="#FFD700" />
+              <animate attributeName="stroke-width" values="1;2;1" dur="1s" repeatCount="indefinite" />
+            </path>
+          ''' :
+          '''
+            <path d="M15 35 L20 30 L25 35 L20 40 Z"
+                  fill="#FF0000" stroke="#FFD700" stroke-width="1">
+              <animate attributeName="stroke-width" values="1;2;1" dur="1s" repeatCount="indefinite" />
+            </path>
+          '''
+        }
+        
+        ${
+          opponent ?
+          '''
+              <circle cx="20" cy="35" r="3" fill="#FFD700" />
+          ''' :
+          '''
+              <circle cx="230" cy="35" r="3" fill="#FFD700" />
+          '''
+        }
       </svg>
     ''';
   }
