@@ -54,7 +54,7 @@ class CharacterSelectionState extends State<CharacterSelection> {
       context,
       MaterialPageRoute(
         builder: (_) => GameWidget(
-          game: PVPGame(character: CharacterManager.instance.characters["Knight"]!, room: roomController.text),
+          game: PVPGame(character: CharacterManager.instance.characters["Knight"]!, room: roomController.text, onExit: () => Navigator.pop(context)),
           autofocus: true,
         ),
       ),

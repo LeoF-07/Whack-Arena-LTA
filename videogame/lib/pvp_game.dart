@@ -4,6 +4,8 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
+import 'package:videogame/components/animated_dots_text.dart';
+import 'package:videogame/components/back_arrow.dart';
 import 'package:videogame/components/health_bar.dart';
 import 'package:videogame/components/jump_button.dart';
 import 'package:videogame/components/opponent_controller.dart';
@@ -19,13 +21,17 @@ class PVPGame extends FlameGame with DragCallbacks, HasKeyboardHandlerComponents
   String mode;
   Character character;
   String room;
+  final VoidCallback? onExit;
 
-  PVPGame({this.mode = "", required this.character, required this.room});
+  PVPGame({this.mode = "", required this.character, required this.room, this.onExit});
 
   @override
   Color backgroundColor() => const Color(0xFF211F30);
 
   late CameraComponent cam;
+
+  late final BackArrow waitingArrow;
+  late AnimatedDotsText waitingText;
 
   late final Player player;
   late final Player opponent;
@@ -55,6 +61,10 @@ class PVPGame extends FlameGame with DragCallbacks, HasKeyboardHandlerComponents
 
       Future.delayed(Duration(seconds: 1), () => addAll([cam, arena, joystick, JumpButton(), AttackButton(), playerHealthBar]));
     } else{
+      waitingArrow = BackArrow(Sprite(images.fromCache('Menu/Buttons/Back.png')), onExit!);
+      waitingText = AnimatedDotsText(position: Vector2(size.x / 2, size.y / 2), originalText: "In attesa dell'avversario");
+
+      addAll([waitingArrow, waitingText]);
       Connection.instance.socket.add(jsonEncode({"message": "wantToPlay", "room": room}));
       _listen();
     }
@@ -138,6 +148,8 @@ class PVPGame extends FlameGame with DragCallbacks, HasKeyboardHandlerComponents
         Connection.instance.socket.add(jsonEncode({'message': 'character', 'character': 'Knight'}));
         break;
       case "prepare":
+        waitingArrow.removeFromParent();
+        waitingText.removeFromParent();
         initGame(decodedServerMessage['playerNumber'], decodedServerMessage['opponent']);
         break;
       case "snapshot":
