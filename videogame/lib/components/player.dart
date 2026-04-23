@@ -274,12 +274,12 @@ class Player extends SpriteAnimationGroupComponent with HasGameReference<PVPGame
         if (checkCollision(this, block)) {
           if (velocity.x > 0) {
             velocity.x = 0;
-            position.x = block.x - hitbox.width / 2;
+            position.x = block.x - hitbox.width / 2 - 1;
             break;
           }
           if (velocity.x < 0) {
             velocity.x = 0;
-            position.x = block.x + block.width + hitbox.width / 2;
+            position.x = block.x + block.width + hitbox.width / 2 + 1;
             break;
           }
         }

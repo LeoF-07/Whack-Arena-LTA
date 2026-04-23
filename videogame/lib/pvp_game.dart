@@ -4,7 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
-import 'package:videogame/components/healt_bar.dart';
+import 'package:videogame/components/health_bar.dart';
 import 'package:videogame/components/jump_button.dart';
 import 'package:videogame/components/opponent_controller.dart';
 import 'package:videogame/components/pvp_arena.dart';
