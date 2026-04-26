@@ -88,6 +88,7 @@ class MyAppState extends State<MyApp>{
       },
     );
 
+    /*
     return MaterialApp(
       home: dataFetched ? HomePage() : const Scaffold(
         body: Center(
@@ -95,5 +96,6 @@ class MyAppState extends State<MyApp>{
         ),
       ),
     );
+    */
   }
 }
