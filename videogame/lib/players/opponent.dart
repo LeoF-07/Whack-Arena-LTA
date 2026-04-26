@@ -1,5 +1,5 @@
-import 'net_snapshot.dart';
-import 'opponent_controller.dart';
+import '../connection/net_snapshot.dart';
+import '../connection/opponent_controller.dart';
 import 'package:flame/components.dart';
 
 class Opponent extends SpriteComponent with HasGameReference{

@@ -8,14 +8,14 @@ import 'package:videogame/components/animated_dots_text.dart';
 import 'package:videogame/components/back_arrow.dart';
 import 'package:videogame/components/health_bar.dart';
 import 'package:videogame/components/jump_button.dart';
-import 'package:videogame/components/opponent_controller.dart';
-import 'package:videogame/components/pvp_arena.dart';
+import 'package:videogame/connection/opponent_controller.dart';
+import 'package:videogame/pvp_arena.dart';
 import 'components/attack_button.dart';
-import 'components/character.dart';
-import 'components/character_manager.dart';
-import 'components/connection.dart';
-import 'components/player.dart';
-import 'components/utils.dart';
+import 'characters/character.dart';
+import 'characters/character_manager.dart';
+import 'connection/connection.dart';
+import 'players/player.dart';
+import 'utils.dart';
 
 class PVPGame extends FlameGame with DragCallbacks, HasKeyboardHandlerComponents {
   String mode;

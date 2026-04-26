@@ -7,7 +7,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:videogame/components/character_manager.dart';
+import 'package:videogame/characters/character_manager.dart';
 import 'package:videogame/pvp_game.dart';
 
 void main() {

@@ -2,11 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:videogame/components/character_manager.dart';
-import '../pvp_game.dart';
+import 'package:videogame/characters/character_manager.dart';
+import 'pvp_game.dart';
 import 'package:flame/game.dart';
-import 'character.dart';
-import 'connection.dart';
+import 'characters/character.dart';
+import 'connection/connection.dart';
 
 class CharacterSelection extends StatefulWidget {
   const CharacterSelection({super.key});
@@ -86,7 +86,9 @@ class CharacterSelectionState extends State<CharacterSelection> {
 
                 return GestureDetector(
                   onTap: () {
-                    setState((){selectedCharacter = character;});
+                    if(character.unlocked){
+                      setState((){selectedCharacter = character;});
+                    }
                   },
                   child: Container(
                     decoration: BoxDecoration(

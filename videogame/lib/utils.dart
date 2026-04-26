@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:videogame/components/collision_block.dart';
-import 'package:videogame/components/player.dart';
-import 'net_snapshot.dart';
-import 'opponent_controller.dart';
+import 'package:videogame/hitboxes/collision_block.dart';
+import 'package:videogame/players/player.dart';
+import 'connection/net_snapshot.dart';
+import 'connection/opponent_controller.dart';
 
 /*
 enum Character{

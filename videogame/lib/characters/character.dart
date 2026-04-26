@@ -13,6 +13,7 @@ class Character {
   final int lifePoints;
   final double weaponWidth;
   final double weaponHeight;
+  bool unlocked = false;
 
   Character({
     required this.id,
@@ -28,7 +29,7 @@ class Character {
     required this.damage,
     required this.lifePoints,
     required this.weaponWidth,
-    required this.weaponHeight,
+    required this.weaponHeight
   });
 
   factory Character.fromJson(Map<String, dynamic> json) {

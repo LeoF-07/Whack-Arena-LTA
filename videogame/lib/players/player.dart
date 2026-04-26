@@ -4,13 +4,13 @@ import 'dart:ui';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/services.dart';
-import 'package:videogame/components/collision_block.dart';
-import 'package:videogame/components/player_hitbox.dart';
-import 'package:videogame/components/utils.dart';
+import 'package:videogame/hitboxes/collision_block.dart';
+import 'package:videogame/hitboxes/player_hitbox.dart';
+import 'package:videogame/utils.dart';
 import 'package:videogame/pvp_game.dart';
 
-import 'character.dart';
-import 'connection.dart';
+import '../characters/character.dart';
+import '../connection/connection.dart';
 
 enum PlayerState {idle, running, jumping, falling, attack, hurt, death}
 

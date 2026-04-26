@@ -1,4 +1,4 @@
-import 'package:videogame/components/utils.dart';
+import 'package:videogame/utils.dart';
 import 'package:flame/components.dart';
 import 'net_snapshot.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flame_tiled/flame_tiled.dart';
-import 'package:videogame/components/collision_block.dart';
-import '../components/player.dart';
+import 'package:videogame/hitboxes/collision_block.dart';
+import 'players/player.dart';
 
 class PVPArena extends World {
 

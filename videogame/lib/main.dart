@@ -4,10 +4,12 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flame/flame.dart';
-import 'components/character.dart';
-import 'components/character_manager.dart';
-import 'components/connection.dart';
+import 'characters/character.dart';
+import 'characters/character_manager.dart';
+import 'connection/connection.dart';
 import 'homepage.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -71,10 +73,23 @@ class MyAppState extends State<MyApp>{
 
   @override
   Widget build(BuildContext context) {
+    return ScreenUtilInit(
+      designSize: const Size(390, 844), // iPhone 12/13/14
+      minTextAdapt: true,
+      builder: (_, child) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: dataFetched ? HomePage() : const Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
+          )
+        );
+      },
+    );
+
     return MaterialApp(
-      home: dataFetched
-          ? HomePage()
-          : const Scaffold(
+      home: dataFetched ? HomePage() : const Scaffold(
         body: Center(
           child: CircularProgressIndicator(),
         ),
