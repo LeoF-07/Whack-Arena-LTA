@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flame/game.dart';
 import 'package:videogame/characters/character_manager.dart';
 import 'character_selection.dart';
+import 'inventory.dart';
 import 'pvp_game.dart';
 
 class HomePage extends StatefulWidget {
@@ -217,6 +218,17 @@ class _HomePageState extends State<HomePage>
                       () {
                     Navigator.push(
                       context,
+                        MaterialPageRoute(builder: (_) => Inventory())
+                    );
+                  },
+                ),
+
+                /*
+                buildButton(
+                  "assets/images/Home Page/test_button.png",
+                      () {
+                    Navigator.push(
+                      context,
                       MaterialPageRoute(
                         builder: (_) => GameWidget(
                           game: PVPGame(
@@ -230,6 +242,7 @@ class _HomePageState extends State<HomePage>
                     );
                   },
                 ),
+                */
               ],
             ),
           ),

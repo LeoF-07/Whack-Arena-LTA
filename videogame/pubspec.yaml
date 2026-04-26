@@ -39,6 +39,7 @@ dependencies:
   flame_tiled: ^1.11.0
   flame_svg: ^1.11.20
   shared_preferences: ^2.2.2
+  nfc_manager: ^3.3.0
 
 dev_dependencies:
   flutter_test:

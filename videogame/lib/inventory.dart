@@ -1,26 +1,27 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:videogame/characters/character_manager.dart';
-import 'pvp_game.dart';
-import 'package:flame/game.dart';
 import 'characters/character.dart';
 import 'connection/connection.dart';
+import 'package:nfc_manager/nfc_manager.dart';
+import 'package:nfc_manager/platform_tags.dart';
 
-class CharacterSelection extends StatefulWidget {
-  const CharacterSelection({super.key});
+class Inventory extends StatefulWidget {
+  const Inventory({super.key});
 
   @override
-  State<CharacterSelection> createState() => CharacterSelectionState();
+  State<Inventory> createState() => InventoryState();
 }
 
-class CharacterSelectionState extends State<CharacterSelection> {
+class InventoryState extends State<Inventory> {
   late List<Character> characters;
   late Character selectedCharacter = CharacterManager.instance.characters["Knight"]!;
   late StreamSubscription socketSub;
-  late String room;
-  final TextEditingController roomController = TextEditingController();
+
+  String nfcReadValue = "";
 
   @override
   void initState() {
@@ -28,36 +29,45 @@ class CharacterSelectionState extends State<CharacterSelection> {
     super.initState();
   }
 
-  void sendCreateRoom() {
-    Connection.instance.socket.add(jsonEncode({"message": "createRoom"}));
-    socketSub = Connection.instance.broadcast.listen((data) {
-      String serverMessage = data.toString();
-      print(serverMessage);
-      final decodedServerMessage = jsonDecode(serverMessage);
-      String message = decodedServerMessage['message'];
-      if(message == "room"){
-        String room = decodedServerMessage["room"];
+  Future<void> readNFC() async {
+    bool isAvailable = await NfcManager.instance.isAvailable();
+    if (!isAvailable) return;
 
-        setState(() {
-          roomController.text = room;
-        });
-        socketSub.cancel();
-      }
-    });
-  }
+    NfcManager.instance.startSession(
+      onDiscovered: (NfcTag tag) async {
+        try {
+          final nfcA = NfcA.from(tag);
+          if (nfcA == null) {
+            NfcManager.instance.stopSession(errorMessage: "Tag non supportato");
+            return;
+          }
 
-  void sendJoinRoom() {
-    final code = roomController.text.trim();
-    if (code.isEmpty) return;
+          List<int> buffer = [];
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => GameWidget(
-          game: PVPGame(character: CharacterManager.instance.characters["Knight"]!, room: roomController.text, onExit: () => Navigator.pop(context)),
-          autofocus: true,
-        ),
-      ),
+          // Legge dalla pagina 4 alla 7 (16 byte)
+          for (int page = 4; page <= 7; page++) {
+            final response = await nfcA.transceive(
+              data: Uint8List.fromList([
+                0x30, // READ command
+                page,
+              ]),
+            );
+
+
+            buffer.addAll(response.sublist(0, 4));
+          }
+
+          final text = utf8.decode(buffer).trim();
+
+          setState(() {
+            nfcReadValue = text;
+          });
+
+          NfcManager.instance.stopSession();
+        } catch (e) {
+          NfcManager.instance.stopSession(errorMessage: e.toString());
+        }
+      },
     );
   }
 
@@ -142,7 +152,7 @@ class CharacterSelectionState extends State<CharacterSelection> {
 
                   // 🔵 CREATE ROOM
                   ElevatedButton(
-                    onPressed: sendCreateRoom,
+                    onPressed: readNFC,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueAccent,
                       padding: const EdgeInsets.symmetric(
@@ -151,7 +161,7 @@ class CharacterSelectionState extends State<CharacterSelection> {
                       ),
                     ),
                     child: const Text(
-                      "Create Room",
+                      "Read NFC",
                       style: TextStyle(fontSize: 18),
                     ),
                   ),
@@ -159,36 +169,9 @@ class CharacterSelectionState extends State<CharacterSelection> {
                   const SizedBox(height: 40),
 
                   // 🔵 JOIN ROOM
-                  TextField(
-                    controller: roomController,
-                    style: const TextStyle(color: Colors.white),
-                    decoration: InputDecoration(
-                      labelText: "Room Code",
-                      labelStyle: const TextStyle(color: Colors.white70),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white24),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.blueAccent),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  ElevatedButton(
-                    onPressed: sendJoinRoom,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 32,
-                      ),
-                    ),
-                    child: const Text(
-                      "Join Room",
-                      style: TextStyle(fontSize: 18),
-                    ),
+                  Text(
+                    "Valore letto: $nfcReadValue",
+                    style: const TextStyle(color: Colors.white, fontSize: 18),
                   ),
                 ],
               ),
