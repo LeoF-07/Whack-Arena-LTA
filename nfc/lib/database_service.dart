@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:mysql_dart/mysql_dart.dart';
 
 class DatabaseService {
@@ -15,17 +17,55 @@ class DatabaseService {
     await conn.connect();
   }
 
-  Future<Map<int, String>> getCharacterMap() async {
+  Future<Map<String, int>> getCharacterMap() async {
     final stmt = await conn.prepare('SELECT id, name FROM characters ORDER BY id ASC');
     final results = await stmt.execute([]);
 
-    Map<int, String> map = {};
+    Map<String, int> map = {};
 
     for (final row in results.rows) {
-      map[int.parse(row.colByName('id').toString())] = row.colByName('name').toString();
+      map[row.colByName('name').toString()] = int.parse(row.colByName('id').toString());
     }
 
     return map;
+  }
+
+  String hashCodeString(String code) {
+    final bytes = utf8.encode(code);
+    return sha256.convert(bytes).toString();
+  }
+
+  Future<bool> searchDuplicated(String code) async {
+    final codeHash = hashCodeString(code);
+    final stmt = await conn.prepare('SELECT COUNT(*) AS cnt FROM codes WHERE code_hash = ?');
+    final results = await stmt.execute([codeHash]);
+
+    final row = results.rows.first;
+    final count = int.parse(row.colByName('cnt'));
+
+    return (count > 0);
+  }
+
+  Future<void> addCode(int characterID, String code) async {
+    final codeHash = hashCodeString(code);
+
+    try {
+      final stmt = await conn.prepare(
+          'INSERT INTO codes (code_hash, character_id) VALUES (?, ?)'
+      );
+
+      await stmt.execute([codeHash, characterID]);
+    } catch (e) {
+      // Errore di chiave duplicata → codice già presente
+      if (e.toString().contains('Duplicate') ||
+          e.toString().contains('UNIQUE') ||
+          e.toString().contains('PRIMARY')) {
+        return;
+      }
+
+      // Altri errori → rilancia
+      rethrow;
+    }
   }
 
   Future<void> disconnect() async {

@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:nfc_manager/nfc_manager.dart';
@@ -18,7 +20,7 @@ class _NFCPageState extends State<NFCPage> {
   String nfcReadValue = "";
   bool dataFetched = false;
 
-  late Map<int, String> characters;
+  late Map<String, int> characters;
 
   @override
   initState() {
@@ -32,6 +34,12 @@ class _NFCPageState extends State<NFCPage> {
     });
   }
 
+  String generateRandomCode(int length) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    final rand = Random.secure();
+    return List.generate(length, (_) => chars[rand.nextInt(chars.length)]).join();
+  }
+
   // -------------------------------------------------------
   // SCRITTURA RAW (NTAG21x / Ultralight)
   // -------------------------------------------------------
@@ -39,7 +47,19 @@ class _NFCPageState extends State<NFCPage> {
     bool isAvailable = await NfcManager.instance.isAvailable();
     if (!isAvailable) return;
 
-    final data = utf8.encode(selectedCharacter);
+    String character = selectedCharacter;
+    int characterID = characters[character]!;
+    String randomCode = generateRandomCode(10);
+
+    bool duplicated = await widget.db.searchDuplicated(randomCode);
+    if(duplicated){
+      print("Duplicato");
+      return;
+    }
+
+    final completer = Completer<bool>();
+
+    final data = utf8.encode(randomCode);
 
     // Pad a multipli di 4 byte
     List<int> padded = List.from(data);
@@ -53,6 +73,7 @@ class _NFCPageState extends State<NFCPage> {
           final nfcA = NfcA.from(tag);
           if (nfcA == null) {
             NfcManager.instance.stopSession(errorMessage: "Tag non supportato");
+            completer.complete(false);
             return;
           }
 
@@ -81,12 +102,40 @@ class _NFCPageState extends State<NFCPage> {
             page++;
           }
 
+          // await widget.db.addCode(characterID, randomCode);
           NfcManager.instance.stopSession();
+          completer.complete(true);
         } catch (e) {
           NfcManager.instance.stopSession(errorMessage: e.toString());
+          completer.complete(false);
         }
       },
     );
+
+    final success = await completer.future;
+
+
+    if (success) {
+      await widget.db.addCode(characterID, randomCode);
+
+      if(!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Tag creato: $character, $randomCode"),
+          duration: Duration(seconds: 4),
+        ),
+      );
+    } else {
+      if(!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Errore durante la scrittura del tag."),
+          duration: Duration(seconds: 4),
+        ),
+      );
+    }
   }
 
 
@@ -148,7 +197,7 @@ class _NFCPageState extends State<NFCPage> {
       mainAxisSpacing: 12,
       childAspectRatio: 2.5, // regola forma dei pulsanti
       children: characters.entries.map((entry) {
-        final name = entry.value;
+        final name = entry.key;
         final bool selected = selectedCharacter == name;
 
         return GestureDetector(

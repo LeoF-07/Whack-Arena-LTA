@@ -12,16 +12,51 @@ class LoginPage extends StatefulWidget{
 
 class LoginPageState extends State<LoginPage>{
   String password = "";
+  String labelText = "Password";
+  bool incorrectPassword = false;
+  final TextEditingController passwordController = TextEditingController();
 
   Future<void> connect() async {
-    DatabaseService db = DatabaseService();
-    await db.connect(password);
+    try{
+      DatabaseService db = DatabaseService();
+      await db.connect(password);
 
-    if(!mounted){
-      return;
+      if(!mounted){
+        return;
+      }
+
+      Navigator.push(context, MaterialPageRoute(builder: (context) => NFCPage(db: db)));
+    } catch(e){
+
+      if(e.toString().contains("Access denied") || e.toString().contains("1045")){
+        setState(() {
+          incorrectPassword = true;
+          passwordController.clear();
+          password = "";
+          labelText = "Incorrect Password";
+        });
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Incorrect Password"),
+            backgroundColor: Colors.redAccent,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      } else{
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Connessione fallita: ${e.toString()}"),
+            backgroundColor: Colors.redAccent,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
     }
-
-    Navigator.push(context, MaterialPageRoute(builder: (context) => NFCPage(db: db)));
   }
 
   @override
@@ -38,16 +73,21 @@ class LoginPageState extends State<LoginPage>{
               const SizedBox(height: 30),
 
               TextField(
+                controller: passwordController,
                 onChanged: (v) => password = v,
+                obscureText: true,
+                obscuringCharacter: '*',
+                enableSuggestions: false,
+                autocorrect: false,
                 style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: "Password",
-                  labelStyle: TextStyle(color: Colors.white70),
-                  enabledBorder: OutlineInputBorder(
+                decoration: InputDecoration(
+                  labelText: labelText,
+                  labelStyle: const TextStyle(color: Colors.white70),
+                  enabledBorder: const OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.white38),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.greenAccent),
+                    borderSide: BorderSide(color: incorrectPassword ? Colors.redAccent : Colors.greenAccent),
                   ),
                 ),
               ),
