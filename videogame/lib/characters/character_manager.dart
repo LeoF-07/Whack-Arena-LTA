@@ -9,9 +9,9 @@ class CharacterManager { // Singleton
   final Map<String, Character> characters = {};
   final List<String> unlocked = [];
 
-  void load(List<Character> list) {
+  Future<void> load(List<Character> list) async {
     characters.clear();
-    loadUnlocked();
+    await loadUnlocked();
 
     if(unlocked.isEmpty){
       unlocked.add("Knight");
@@ -28,6 +28,7 @@ class CharacterManager { // Singleton
 
   Future<void> unlock(String name) async {
     unlocked.add(name);
+    characters[unlocked.last]!.unlocked = true;
     await saveUnlocked();
   }
 
@@ -42,6 +43,16 @@ class CharacterManager { // Singleton
   Future<void> saveUnlocked() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList("unlocked_characters", unlocked.toList());
+  }
+
+  Future<void> lockCharacters() async {
+    unlocked.clear();
+    unlocked.add("Knight");
+    for(Character character in characters.values){
+      character.unlocked = false;
+    }
+    characters["Knight"]!.unlocked = true;
+    saveUnlocked();
   }
 
 

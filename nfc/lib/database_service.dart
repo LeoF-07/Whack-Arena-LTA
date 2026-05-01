@@ -50,9 +50,7 @@ class DatabaseService {
     final codeHash = hashCodeString(code);
 
     try {
-      final stmt = await conn.prepare(
-          'INSERT INTO codes (code_hash, character_id) VALUES (?, ?)'
-      );
+      final stmt = await conn.prepare('INSERT INTO codes (code_hash, character_id) VALUES (?, ?)');
 
       await stmt.execute([codeHash, characterID]);
     } catch (e) {
@@ -66,6 +64,11 @@ class DatabaseService {
       // Altri errori → rilancia
       rethrow;
     }
+  }
+
+  Future<void> unlockAllTags() async {
+    final stmt = await conn.prepare('UPDATE codes SET used = 0, used_at = null');
+    await stmt.execute([]);
   }
 
   Future<void> disconnect() async {

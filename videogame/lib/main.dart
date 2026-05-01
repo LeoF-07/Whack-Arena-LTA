@@ -44,7 +44,7 @@ class MyAppState extends State<MyApp>{
       // 151.49.35.17:8176 indirizzo router
       socket = await WebSocket.connect('ws://151.95.238.133:8080/ws');
       broadcast = socket.asBroadcastStream();
-      socketSub = broadcast.listen((data) {
+      socketSub = broadcast.listen((data) async {
         String serverMessage = data.toString();
         print(serverMessage);
         final decodedServerMessage = jsonDecode(serverMessage);
@@ -54,7 +54,7 @@ class MyAppState extends State<MyApp>{
           final List<Character> characters = (decodedServerMessage['characters'] as List)
               .map((c) => Character.fromJson(c))
               .toList();
-          CharacterManager.instance.load(characters);
+          await CharacterManager.instance.load(characters);
           print(CharacterManager.instance.get("Knight"));
 
           setState(() {
@@ -65,7 +65,7 @@ class MyAppState extends State<MyApp>{
       });
 
       // Non serve salvare socketSub
-      Connection.instance.init(socket: socket, broadcast: broadcast, streamSubscription: socketSub);
+      Connection.instance.init(socket: socket, broadcast: broadcast);
     } catch (e) {
       print("Errore");
     }

@@ -7,11 +7,9 @@ class Connection{
 
   late final WebSocket socket;
   late final Stream broadcast;
-  late final StreamSubscription streamSubscription;
 
-  void init({required WebSocket socket, required Stream broadcast, required StreamSubscription streamSubscription}) {
+  void init({required WebSocket socket, required Stream broadcast}) {
     this.socket = socket;
     this.broadcast = broadcast;
-    this.streamSubscription = streamSubscription;
   }
 }

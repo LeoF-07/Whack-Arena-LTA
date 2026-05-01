@@ -47,6 +47,36 @@ class DatabaseService {
     }).toList();
   }
 
+  Future<String> findCharacter(String hash) async {
+    final stmt = await conn.prepare(
+      '''
+      select characters.name as name from characters
+      inner join codes on characters.id = codes.character_id
+      where codes.code_hash = ?
+      '''
+    );
+
+    final result = await stmt.execute([hash]);
+
+    return result.rows.first.colByName("name");
+  }
+
+  Future<bool> codeUsed(String hash) async {
+    final stmt = await conn.prepare('SELECT codes.used as used FROM codes WHERE code_hash = ?');
+
+    final result = await stmt.execute([hash]);
+
+    return result.rows.first.colByName("used") == "1" ? true : false;
+  }
+
+  Future<bool> useNFC(String hash) async {
+    final stmt = await conn.prepare('UPDATE codes SET used = 1, used_at = NOW() WHERE code_hash = ?');
+
+    await stmt.execute([hash]);
+
+    return true;
+  }
+
   Future<void> disconnect() async {
     conn.close();
   }

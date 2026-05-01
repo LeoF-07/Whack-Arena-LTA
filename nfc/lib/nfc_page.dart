@@ -118,23 +118,23 @@ class _NFCPageState extends State<NFCPage> {
     if (success) {
       await widget.db.addCode(characterID, randomCode);
 
-      if(!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Tag creato: $character, $randomCode"),
-          duration: Duration(seconds: 4),
-        ),
-      );
+      setState(() {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Tag creato: $character, $randomCode"),
+            duration: Duration(seconds: 4),
+          ),
+        );
+      });
     } else {
-      if(!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Errore durante la scrittura del tag."),
-          duration: Duration(seconds: 4),
-        ),
-      );
+      setState(() {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Errore durante la scrittura del tag."),
+            duration: Duration(seconds: 4),
+          ),
+        );
+      });
     }
   }
 
@@ -183,6 +183,18 @@ class _NFCPageState extends State<NFCPage> {
         }
       },
     );
+  }
+
+  Future<void> unlockAllTags() async {
+    widget.db.unlockAllTags();
+    setState(() {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Tag sbloccati"),
+          duration: Duration(seconds: 4),
+        ),
+      );
+    });
   }
 
   // -------------------------------------------------------
@@ -261,6 +273,13 @@ class _NFCPageState extends State<NFCPage> {
               Text(
                 "Valore letto: $nfcReadValue",
                 style: const TextStyle(color: Colors.white, fontSize: 18),
+              ),
+
+              const SizedBox(height: 30),
+
+              ElevatedButton(
+                onPressed: () async {await unlockAllTags();},
+                child: const Text("Sblocca tutti i tag"),
               ),
             ],
           ),

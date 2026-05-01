@@ -20,8 +20,7 @@ class InventoryState extends State<Inventory> {
   late List<Character> characters;
   late Character selectedCharacter = CharacterManager.instance.characters["Knight"]!;
   late StreamSubscription socketSub;
-
-  String nfcReadValue = "";
+  String nfcReadText = "";
 
   @override
   void initState() {
@@ -29,9 +28,16 @@ class InventoryState extends State<Inventory> {
     super.initState();
   }
 
+  Future<void> lockCharacters() async {
+    await CharacterManager.instance.lockCharacters();
+    setState(() {});
+  }
+
   Future<void> readNFC() async {
     bool isAvailable = await NfcManager.instance.isAvailable();
     if (!isAvailable) return;
+
+    final completer = Completer<bool>();
 
     NfcManager.instance.startSession(
       onDiscovered: (NfcTag tag) async {
@@ -39,6 +45,7 @@ class InventoryState extends State<Inventory> {
           final nfcA = NfcA.from(tag);
           if (nfcA == null) {
             NfcManager.instance.stopSession(errorMessage: "Tag non supportato");
+            completer.complete(false);
             return;
           }
 
@@ -57,18 +64,87 @@ class InventoryState extends State<Inventory> {
             buffer.addAll(response.sublist(0, 4));
           }
 
-          final text = utf8.decode(buffer).trim();
-
-          setState(() {
-            nfcReadValue = text;
-          });
+          nfcReadText = utf8.decode(buffer).replaceAll('\u0000', '').trim();
 
           NfcManager.instance.stopSession();
+          completer.complete(true);
         } catch (e) {
           NfcManager.instance.stopSession(errorMessage: e.toString());
+          completer.complete(false);
         }
       },
     );
+
+    final success = await completer.future;
+
+    if (success) {
+      final completer = Completer<bool>();
+      String character = "";
+      String nfcText = nfcReadText;
+      String? errorMessage;
+
+      Connection.instance.socket.add(jsonEncode({"message": "useNFC", "code": nfcText}));
+      socketSub = Connection.instance.broadcast.listen((data) {
+        String serverMessage = data.toString();
+        print(serverMessage);
+        final decodedServerMessage = jsonDecode(serverMessage);
+        String message = decodedServerMessage['message'];
+        if(message == "check"){
+          character = decodedServerMessage["character"];
+          if(CharacterManager.instance.characters[character]!.unlocked){
+            setState(() {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text("Error: You already have $character"),
+                  duration: Duration(seconds: 4),
+                ),
+              );
+            });
+            socketSub.cancel();
+            completer.complete(false);
+          } else{
+            Connection.instance.socket.add(jsonEncode({"message": "checked", "code": nfcText, "character": character, "continue": "true"}));
+          }
+        }
+        else if(message == "alreadyUsed"){
+          errorMessage = "Tag already used";
+          socketSub.cancel();
+          completer.complete(false);
+        }
+        else if(message == "unlockCharacter"){
+          character = decodedServerMessage["character"];
+          socketSub.cancel();
+          completer.complete(true);
+        }
+      });
+
+      final unlockCharacter = await completer.future;
+      if(unlockCharacter){
+        print("Unlocking");
+        await CharacterManager.instance.unlock(character);
+
+        // if(!mounted) return;
+
+        setState(() {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("$character unlocked!"),
+              duration: Duration(seconds: 4),
+            ),
+          );
+          print("Unlocked");
+        });
+      } else{
+        setState(() {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text("Error: $errorMessage"),
+              duration: Duration(seconds: 4),
+            ),
+          );
+        });
+      }
+    }
   }
 
   @override
@@ -102,7 +178,7 @@ class InventoryState extends State<Inventory> {
                   },
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.blueGrey.shade900,
+                      color: character.unlocked ? Colors.blueGrey.shade900 : Colors.black26,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: selectedCharacter.name == character.name
@@ -129,9 +205,6 @@ class InventoryState extends State<Inventory> {
             ),
           ),
 
-          // -------------------------
-          // 🟩 COLONNA DESTRA: MATCHMAKING
-          // -------------------------
           Expanded(
             flex: 1,
             child: Container(
@@ -140,19 +213,39 @@ class InventoryState extends State<Inventory> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    "Matchmaking",
+                  Text(
+                    selectedCharacter.name,
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Life Points: ${selectedCharacter.lifePoints}",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                      Text(
+                        "Damage: ${selectedCharacter.damage}",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                      )
+                    ],
+                  ),
+
                   const SizedBox(height: 40),
 
-                  // 🔵 CREATE ROOM
                   ElevatedButton(
-                    onPressed: readNFC,
+                    onPressed: () async {await readNFC();},
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blueAccent,
                       padding: const EdgeInsets.symmetric(
@@ -162,16 +255,25 @@ class InventoryState extends State<Inventory> {
                     ),
                     child: const Text(
                       "Read NFC",
-                      style: TextStyle(fontSize: 18),
+                      style: TextStyle(fontSize: 18)
                     ),
                   ),
 
-                  const SizedBox(height: 40),
+                  SizedBox(height: 10,),
 
-                  // 🔵 JOIN ROOM
-                  Text(
-                    "Valore letto: $nfcReadValue",
-                    style: const TextStyle(color: Colors.white, fontSize: 18),
+                  ElevatedButton(
+                    onPressed: () async {await lockCharacters();},
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 32,
+                      ),
+                    ),
+                    child: const Text(
+                        "Lock characters",
+                        style: TextStyle(fontSize: 18)
+                    ),
                   ),
                 ],
               ),

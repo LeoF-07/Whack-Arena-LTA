@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'dart:io';
 import 'dart:math';
 import 'game_session.dart';
@@ -9,6 +10,11 @@ import 'character_manager.dart';
 List<Map<String, dynamic>> connections = [];
 List<String> rooms = [];
 int index = 0;
+
+String hashCodeString(String code) {
+    final bytes = utf8.encode(code);
+    return sha256.convert(bytes).toString();
+  }
 
 String _generateRoomCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -44,7 +50,7 @@ Future<void> main() async {
 
   await for (HttpRequest req in server) {
     print('Richiesta ricevuta: ${req.uri.path} da ${req.connectionInfo?.remoteAddress}');
-    if (req.uri.path == '/ws') {
+    if (req.uri.path == '/ws'){
       print("Tentativo di upgrade...");
       WebSocket socket = await WebSocketTransformer.upgrade(req);
       print('Nuovo client collegato');
@@ -56,7 +62,7 @@ Future<void> main() async {
       int id = index;
 
       Stream broadcast = socket.asBroadcastStream();
-      StreamSubscription socketSub = broadcast.listen((data) {
+      StreamSubscription socketSub = broadcast.listen((data) async {
         final decodedMessage = jsonDecode(data);
         if(decodedMessage["message"] == "createRoom"){
           String roomCode = _createUniqueRoom();
@@ -65,6 +71,22 @@ Future<void> main() async {
         if(decodedMessage['message'] == "wantToPlay"){
           String room = decodedMessage["room"];
           _addOrJoinRoom(room, id);
+        }
+        if(decodedMessage["message"] == "useNFC"){
+          bool used = await db.codeUsed(hashCodeString(decodedMessage["code"]));
+
+          if(used){
+            socket.add(jsonEncode({"message": "alreadyUsed", "code": decodedMessage["code"]}));
+          }else{
+            String characterName = await db.findCharacter(hashCodeString(decodedMessage["code"]));
+            socket.add(jsonEncode({"message": "check", "character": characterName}));
+          }
+        }
+        if(decodedMessage["message"] == "checked" && decodedMessage["continue"] == "true"){
+          bool success = await db.useNFC(hashCodeString(decodedMessage["code"]));
+          if(success){
+            socket.add(jsonEncode({"message": "unlockCharacter", "character": decodedMessage["character"]}));
+          }
         }
       },
       onDone: () {
