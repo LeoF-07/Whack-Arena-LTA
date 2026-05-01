@@ -1,11 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flame/game.dart';
-import 'package:videogame/characters/character_manager.dart';
 import 'character_selection.dart';
 import 'inventory.dart';
-import 'pvp_game.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

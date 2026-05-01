@@ -27,12 +27,13 @@ class PVPArena extends World {
         switch (spawnPoint.class_){ // Le classi sono definite dentro il file .tmx
           case 'Player1':
             player1.position = Vector2(spawnPoint.x, spawnPoint.y);
-            add(player1);
+            Future.delayed(Duration(milliseconds: 800), (){add(player1);});
             break;
           case 'Player2':
             player2.position = Vector2(spawnPoint.x, spawnPoint.y);
-            add(player2);
-            player2.flipHorizontallyAroundCenter();
+            Future.delayed(Duration(milliseconds: 800), (){add(player2); player2.flipHorizontallyAroundCenter();});
+            // add(player2);
+            // player2.flipHorizontallyAroundCenter();
             break;
         }
       }

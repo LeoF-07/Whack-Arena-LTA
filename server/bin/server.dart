@@ -9,7 +9,6 @@ import 'character_manager.dart';
 
 List<Map<String, dynamic>> connections = [];
 List<String> rooms = [];
-int index = 0;
 
 String hashCodeString(String code) {
     final bytes = utf8.encode(code);
@@ -28,6 +27,53 @@ String _createUniqueRoom() {
     code = _generateRoomCode();
   } while (rooms.contains(code));
   return code;
+}
+
+void exitQueue(WebSocket socket){
+  final index = connections.indexWhere((c) => c["socket"] == socket);
+  if (index != -1) {
+    connections[index]["room"] = "";
+  }
+}
+
+void _removeConnection(WebSocket socket) {
+  final index = connections.indexWhere((c) => c["socket"] == socket);
+  if (index != -1) {
+    final conn = connections.removeAt(index);
+    final StreamSubscription sub = conn["streamSubscription"];
+    sub.cancel();
+    print("Connessione rimossa dalla lista");
+  }
+}
+
+void _addOrJoinRoom(String room, WebSocket socket){
+  final index = connections.indexWhere((c) => c["room"] == room);
+  int myIndex = connections.indexWhere((c) => c["socket"] == socket);
+
+  if (index != -1) {
+    int opponentIndex = index;
+    Map<String, dynamic> opponentConn;
+    Map<String, dynamic> myConn;
+
+    if(myIndex > opponentIndex){
+      myConn = connections.removeAt(myIndex);
+      opponentConn = connections.removeAt(opponentIndex);
+    } else{
+      opponentConn = connections.removeAt(opponentIndex);
+      myConn = connections.removeAt(myIndex);
+    }
+    WebSocket s1 = myConn["socket"];
+    WebSocket s2 = opponentConn["socket"];
+    Stream b1 = myConn["broadcast"];
+    Stream b2 = opponentConn["broadcast"];
+    StreamSubscription ss1 = myConn["streamSubscription"];
+    StreamSubscription ss2 = opponentConn["streamSubscription"];
+    ss1.cancel();
+    ss2.cancel();
+    GameSession(socket1: s1, socket2: s2, broadcast1: b1, broadcast2: b2);
+  } else {
+    connections[myIndex]["room"] = room;
+  }
 }
 
 Future<void> main() async {
@@ -58,9 +104,6 @@ Future<void> main() async {
       print("Fetching data");
       socket.add(jsonEncode({"message": "characters", "characters": clientCharacters}));
 
-      index++;
-      int id = index;
-
       Stream broadcast = socket.asBroadcastStream();
       StreamSubscription socketSub = broadcast.listen((data) async {
         final decodedMessage = jsonDecode(data);
@@ -70,7 +113,7 @@ Future<void> main() async {
         }
         if(decodedMessage['message'] == "wantToPlay"){
           String room = decodedMessage["room"];
-          _addOrJoinRoom(room, id);
+          _addOrJoinRoom(room, socket);
         }
         if(decodedMessage["message"] == "useNFC"){
           bool used = await db.codeUsed(hashCodeString(decodedMessage["code"]));
@@ -88,18 +131,20 @@ Future<void> main() async {
             socket.add(jsonEncode({"message": "unlockCharacter", "character": decodedMessage["character"]}));
           }
         }
+        if(decodedMessage["message"] == "exitQueue"){
+          exitQueue(socket);
+        }
       },
       onDone: () {
         print("Il client ha chiuso la connessione");
-        _removeConnection(id);
+        _removeConnection(socket);
       },
       onError: (err) {
         print("Il client ha chiuso la connessione");
-        _removeConnection(id);
+        _removeConnection(socket);
       });
 
       Map<String, dynamic> connection = {
-        "id": id,
         "socket": socket,
         "broadcast": broadcast,
         "streamSubscription": socketSub,
@@ -113,45 +158,5 @@ Future<void> main() async {
         ..write('Endpoint non valido')
         ..close();
     }
-  }
-}
-
-void _removeConnection(int id) {
-  final index = connections.indexWhere((c) => c["id"] == id);
-  if (index != -1) {
-    final conn = connections.removeAt(index);
-    final StreamSubscription sub = conn["streamSubscription"];
-    sub.cancel();
-    print("Connessione rimossa dalla lista");
-  }
-}
-
-void _addOrJoinRoom(String room, int id){
-  final index = connections.indexWhere((c) => c["room"] == room);
-  int myIndex = connections.indexWhere((c) => c["id"] == id);
-
-  if (index != -1) {
-    int opponentIndex = index;
-    Map<String, dynamic> opponentConn;
-    Map<String, dynamic> myConn;
-
-    if(myIndex > opponentIndex){
-      myConn = connections.removeAt(myIndex);
-      opponentConn = connections.removeAt(opponentIndex);
-    } else{
-      opponentConn = connections.removeAt(opponentIndex);
-      myConn = connections.removeAt(myIndex);
-    }
-    WebSocket s1 = myConn["socket"];
-    WebSocket s2 = opponentConn["socket"];
-    Stream b1 = myConn["broadcast"];
-    Stream b2 = opponentConn["broadcast"];
-    StreamSubscription ss1 = myConn["streamSubscription"];
-    StreamSubscription ss2 = opponentConn["streamSubscription"];
-    ss1.cancel();
-    ss2.cancel();
-    GameSession(socket1: s1, socket2: s2, broadcast1: b1, broadcast2: b2);
-  } else {
-    connections[myIndex]["room"] = room;
   }
 }

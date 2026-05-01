@@ -74,7 +74,7 @@ class PVPGame extends FlameGame with DragCallbacks, HasKeyboardHandlerComponents
 
   void initGame(int playerNumber, String opponentCharacter) async {
     opponent = Player(character: CharacterManager.instance.characters[opponentCharacter]!, isOpponent: true);
-    if(playerNumber == 1){
+    if(playerNumber == 0){
       arena = PVPArena(player1: player, player2: opponent);
     }else{
       arena = PVPArena(player1: opponent, player2: player);

@@ -48,13 +48,14 @@ class CharacterSelectionState extends State<CharacterSelection> {
 
   void sendJoinRoom() {
     final code = roomController.text.trim();
+    roomController.text = "";
     if (code.isEmpty) return;
 
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => GameWidget(
-          game: PVPGame(character: CharacterManager.instance.characters["Knight"]!, room: roomController.text, onExit: () => Navigator.pop(context)),
+          game: PVPGame(character: CharacterManager.instance.characters["Knight"]!, room: code, onExit: () {Navigator.pop(context); Connection.instance.socket.add(jsonEncode({"message":"exitQueue"}));}),
           autofocus: true,
         ),
       ),
@@ -92,7 +93,7 @@ class CharacterSelectionState extends State<CharacterSelection> {
                   },
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.blueGrey.shade900,
+                      color: character.unlocked ? Colors.blueGrey.shade900 : Colors.black26,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: selectedCharacter.name == character.name

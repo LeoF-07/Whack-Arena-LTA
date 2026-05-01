@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'character_manager.dart';
 
 class GameSession{
@@ -56,9 +57,9 @@ class GameSession{
 
       print("$lastXOpponent, $lastXPlayer, $playerFacing");
 
-      if((playerFacing == "right" && (lastXOpponent >= lastXPlayer && lastXOpponent <= lastXPlayer + 30 && (lastYOpponent >= lastYPlayer - 30 || lastYOpponent <= lastYPlayer + 30)))
+      if((playerFacing == "right" && (lastXOpponent >= lastXPlayer && lastXOpponent <= lastXPlayer + 30 && lastYOpponent >= lastYPlayer - 30 && lastYOpponent <= lastYPlayer + 30))
           ||
-         (playerFacing == "left" && (lastXOpponent <= lastXPlayer && lastXOpponent >= lastXPlayer - 30 && (lastYOpponent >= lastYPlayer - 30 || lastYOpponent <= lastYPlayer + 30)))
+         (playerFacing == "left" && (lastXOpponent <= lastXPlayer && lastXOpponent >= lastXPlayer - 30 && (lastYOpponent >= lastYPlayer - 30 && lastYOpponent <= lastYPlayer + 30)))
       ){
         print("Hit");
         int damage = CharacterManager.instance.characters[characters[player]]!.damage;
@@ -105,10 +106,9 @@ class GameSession{
         readyPlayers++;
       }
       if(decodedMessage['message'] == "character" && readyPlayers == 2){
-        String initFirst = "";
-        String initSecond = "";
-        initFirst = jsonEncode({'message': 'prepare', 'playerNumber': 1, 'opponent': characters[0]});
-        initSecond = jsonEncode({'message': 'prepare', 'playerNumber': 2, 'opponent': characters[1]});
+        int playerNumber = Random().nextInt(2);
+        String initFirst = jsonEncode({'message': 'prepare', 'playerNumber': playerNumber, 'opponent': characters[0]});
+        String initSecond = jsonEncode({'message': 'prepare', 'playerNumber': (playerNumber + 1) % 2, 'opponent': characters[1]});
         socket1.add(initFirst);
         socket2.add(initSecond);
         readyPlayers = 0;

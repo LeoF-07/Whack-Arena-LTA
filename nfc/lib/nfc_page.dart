@@ -186,7 +186,7 @@ class _NFCPageState extends State<NFCPage> {
   }
 
   Future<void> unlockAllTags() async {
-    widget.db.unlockAllTags();
+    await widget.db.unlockAllTags();
     setState(() {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

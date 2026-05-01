@@ -216,6 +216,7 @@ class Player extends SpriteAnimationGroupComponent with HasGameReference<PVPGame
     }
 
     PlayerState playerState = PlayerState.idle;
+
     if (hasAttacked || isHurted || isDead) {
       return;
     }
@@ -226,7 +227,8 @@ class Player extends SpriteAnimationGroupComponent with HasGameReference<PVPGame
     else if(isDead){
       playerState = PlayerState.death;
     }
-    else if(velocity.x != 0) {
+    //else if(velocity.x != 0) {
+    else if(horizontalMovement != 0){
       playerState = PlayerState.running;
     }
     else if(velocity.y > gravity) {
@@ -235,7 +237,6 @@ class Player extends SpriteAnimationGroupComponent with HasGameReference<PVPGame
     else if(velocity.y < 0) {
       playerState = PlayerState.jumping;
     }
-
 
     current = playerState;
   }

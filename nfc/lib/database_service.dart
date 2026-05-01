@@ -67,8 +67,7 @@ class DatabaseService {
   }
 
   Future<void> unlockAllTags() async {
-    final stmt = await conn.prepare('UPDATE codes SET used = 0, used_at = null');
-    await stmt.execute([]);
+    await conn.execute('UPDATE codes SET used = 0, used_at = null WHERE 1');
   }
 
   Future<void> disconnect() async {
