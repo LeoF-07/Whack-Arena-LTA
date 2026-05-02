@@ -24,7 +24,7 @@ class AttackButton extends SpriteComponent with HasGameReference<PVPGame>, TapCa
       game.player.attack();
       super.onTapDown(event);
       Future.delayed(
-          Duration(milliseconds: (game.player.stepTime * game.player.character.attackVelocity * 1000).toInt()),
+          Duration(milliseconds: (game.player.stepTime * game.player.character.attackVelocity * 1500).toInt()),
           () {
             disable = false;
           }

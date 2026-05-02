@@ -68,6 +68,7 @@ flutter:
     - assets/tiles/
     - assets/images/Terrain/
     - assets/images/HUD/
+    - assets/images/Items/
     - assets/images/Home Page/
     - assets/images/Menu/Buttons/
     - assets/images/Main Characters/Samurai/

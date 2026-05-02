@@ -171,6 +171,9 @@ class Player extends SpriteAnimationGroupComponent with HasGameReference<PVPGame
 
   void attack(){
     hasAttacked = true;
+    if(current == PlayerState.attack){ // Controllo aggiuntivo non strettamente necessario
+      return;
+    }
     current = PlayerState.attack;
     animationTicker?.onComplete = () {
       hasAttacked = false;

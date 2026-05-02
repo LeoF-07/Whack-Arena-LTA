@@ -53,7 +53,7 @@ class PVPGame extends FlameGame with DragCallbacks, HasKeyboardHandlerComponents
 
     if(mode == "debug"){
       opponent = Player(character: character, isOpponent: true);
-      arena = PVPArena(player1: player, player2: opponent);
+      arena = PVPArena(player1: player, player2: opponent, local: 1);
 
       cam = CameraComponent.withFixedResolution(world: arena, width: 640, height: 360);
       cam.priority = 1;
@@ -75,9 +75,9 @@ class PVPGame extends FlameGame with DragCallbacks, HasKeyboardHandlerComponents
   void initGame(int playerNumber, String opponentCharacter) async {
     opponent = Player(character: CharacterManager.instance.characters[opponentCharacter]!, isOpponent: true);
     if(playerNumber == 0){
-      arena = PVPArena(player1: player, player2: opponent);
+      arena = PVPArena(player1: player, player2: opponent, local: 1);
     }else{
-      arena = PVPArena(player1: opponent, player2: player);
+      arena = PVPArena(player1: opponent, player2: player, local: 2);
     }
 
     cam = CameraComponent.withFixedResolution(world: arena, width: 640, height: 360);

@@ -1,6 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flame_tiled/flame_tiled.dart';
 import 'package:videogame/hitboxes/collision_block.dart';
+import 'components/indicator.dart';
 import 'players/player.dart';
 
 class PVPArena extends World {
@@ -8,12 +9,13 @@ class PVPArena extends World {
   late TiledComponent arena;
   final Player player1;
   final Player player2;
+  final int local;
   List<CollisionBlock> collisionsBlocks = [];
 
   @override
   int priority = 10;
 
-  PVPArena({required this.player1, required this.player2});
+  PVPArena({required this.player1, required this.player2, required this.local});
 
   @override
   Future<dynamic> onLoad() async {
@@ -28,10 +30,16 @@ class PVPArena extends World {
           case 'Player1':
             player1.position = Vector2(spawnPoint.x, spawnPoint.y);
             Future.delayed(Duration(milliseconds: 800), (){add(player1);});
+            if(local == 1){
+              showIndicator(spawnPoint.x, spawnPoint.y);
+            }
             break;
           case 'Player2':
             player2.position = Vector2(spawnPoint.x, spawnPoint.y);
             Future.delayed(Duration(milliseconds: 800), (){add(player2); player2.flipHorizontallyAroundCenter();});
+            if(local == 2){
+              showIndicator(spawnPoint.x, spawnPoint.y);
+            }
             // add(player2);
             // player2.flipHorizontallyAroundCenter();
             break;
@@ -68,5 +76,14 @@ class PVPArena extends World {
     }
 
     return super.onLoad();
+  }
+
+  Future<void> showIndicator(double x, double y) async {
+    final indicator = Indicator(positionX: x, positionY: y);
+    Future.delayed(Duration(milliseconds: 1000), () {
+      add(indicator);
+    }).then((_) {
+      Future.delayed(Duration(milliseconds: 3000), () => indicator.removeFromParent());
+    });
   }
 }
