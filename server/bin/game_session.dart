@@ -119,6 +119,14 @@ class GameSession{
       if (decodedMessage["state"] == "attack"){
         checkAttack(player);
       }
+      if(decodedMessage["message"] == "ready"){
+        readyPlayers++;
+      }
+      if(decodedMessage["message"] == "ready" &&  readyPlayers == 2){
+        socket1.add(jsonEncode({"message": "go"}));
+        socket2.add(jsonEncode({"message": "go"}));
+        readyPlayers = 0;
+      }
     });
   }
 

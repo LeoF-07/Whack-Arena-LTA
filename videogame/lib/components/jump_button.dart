@@ -19,6 +19,10 @@ class JumpButton extends SpriteComponent with HasGameReference<PVPGame>, TapCall
 
   @override
   void onTapDown(TapDownEvent event) {
+    if(!game.canMove){
+      return;
+    }
+
     game.player.hasJumped = true;
     super.onTapDown(event);
   }

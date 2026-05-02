@@ -41,6 +41,10 @@ class Indicator extends SpriteComponent with HasGameReference<PVPGame> {
 
     // Movimento su-giù con sinusoide
     position.y = baseY + sin(elapsed * speed) * amplitude;
+
+    if(elapsed >= 5){
+      removeFromParent();
+    }
   }
 }
 

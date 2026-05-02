@@ -1,5 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flame_tiled/flame_tiled.dart';
+import 'package:videogame/components/countdown.dart';
 import 'package:videogame/hitboxes/collision_block.dart';
 import 'components/indicator.dart';
 import 'players/player.dart';
@@ -79,11 +80,15 @@ class PVPArena extends World {
   }
 
   Future<void> showIndicator(double x, double y) async {
+    print("$x, $y");
     final indicator = Indicator(positionX: x, positionY: y);
+    final countdown = Countdown();
+
     Future.delayed(Duration(milliseconds: 1000), () {
       add(indicator);
-    }).then((_) {
-      Future.delayed(Duration(milliseconds: 3000), () => indicator.removeFromParent());
+    });
+    Future.delayed(Duration(milliseconds: 3000), () {
+      add(countdown);
     });
   }
 }

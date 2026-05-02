@@ -21,6 +21,7 @@ class PVPGame extends FlameGame with DragCallbacks, HasKeyboardHandlerComponents
   String mode;
   Character character;
   String room;
+  bool canMove = false;
   final VoidCallback? onExit;
 
   PVPGame({this.mode = "", required this.character, required this.room, this.onExit});
@@ -32,6 +33,7 @@ class PVPGame extends FlameGame with DragCallbacks, HasKeyboardHandlerComponents
 
   late final BackArrow waitingArrow;
   late AnimatedDotsText waitingText;
+  late final TextComponent roomText;
 
   late final Player player;
   late final Player opponent;
@@ -63,8 +65,21 @@ class PVPGame extends FlameGame with DragCallbacks, HasKeyboardHandlerComponents
     } else{
       waitingArrow = BackArrow(Sprite(images.fromCache('Menu/Buttons/Back.png')), onExit!);
       waitingText = AnimatedDotsText(position: Vector2(size.x / 2, size.y / 2), originalText: "In attesa dell'avversario");
+      roomText = TextComponent(
+        anchor: Anchor.center,
+        position: Vector2(size.x / 2, 60),
+        text: room,
+        priority: 300,
+        textRenderer: TextPaint(
+          style: TextStyle(
+            color: const Color(0xFFFFFFFF),
+            fontSize: 50,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
 
-      addAll([waitingArrow, waitingText]);
+      addAll([waitingArrow, waitingText, roomText]);
       Connection.instance.socket.add(jsonEncode({"message": "wantToPlay", "room": room}));
       _listen();
     }
@@ -113,6 +128,9 @@ class PVPGame extends FlameGame with DragCallbacks, HasKeyboardHandlerComponents
   }
 
   _updateJoystick() {
+    if(!canMove){
+      return;
+    }
     switch (joystick.direction){
       case JoystickDirection.left:
       case JoystickDirection.upLeft:
@@ -150,6 +168,7 @@ class PVPGame extends FlameGame with DragCallbacks, HasKeyboardHandlerComponents
       case "prepare":
         waitingArrow.removeFromParent();
         waitingText.removeFromParent();
+        roomText.removeFromParent();
         initGame(decodedServerMessage['playerNumber'], decodedServerMessage['opponent']);
         break;
       case "snapshot":

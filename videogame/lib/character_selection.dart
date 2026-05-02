@@ -20,6 +20,7 @@ class CharacterSelectionState extends State<CharacterSelection> {
   late Character selectedCharacter = CharacterManager.instance.characters["Knight"]!;
   late StreamSubscription socketSub;
   late String room;
+  bool invalidRoom = false;
   final TextEditingController roomController = TextEditingController();
 
   @override
@@ -49,7 +50,12 @@ class CharacterSelectionState extends State<CharacterSelection> {
   void sendJoinRoom() {
     final code = roomController.text.trim();
     roomController.text = "";
-    if (code.isEmpty) return;
+    if (code.isEmpty) {
+      setState(() {
+        invalidRoom = true;
+      });
+      return;
+    }
 
     Navigator.push(
       context,
@@ -164,8 +170,8 @@ class CharacterSelectionState extends State<CharacterSelection> {
                     controller: roomController,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
-                      labelText: "Room Code",
-                      labelStyle: const TextStyle(color: Colors.white70),
+                      labelText: invalidRoom ? "Invalid room" : "Room Code",
+                      labelStyle: TextStyle(color: invalidRoom ? Colors.redAccent : Colors.white70),
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.white24),
                       ),
