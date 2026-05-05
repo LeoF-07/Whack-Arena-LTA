@@ -13,6 +13,7 @@ import 'package:videogame/pvp_arena.dart';
 import 'components/attack_button.dart';
 import 'characters/character.dart';
 import 'characters/character_manager.dart';
+import 'components/ko.dart';
 import 'connection/connection.dart';
 import 'players/player.dart';
 import 'utils.dart';
@@ -105,6 +106,21 @@ class PVPGame extends FlameGame with DragCallbacks, HasKeyboardHandlerComponents
     Future.delayed(Duration(seconds: 1), () => addAll([cam, arena, joystick, JumpButton(), AttackButton(), playerHealthBar, opponentHealthBar]));
   }
 
+  void endGame(String result){
+    canMove = false;
+    player.velocity.x = 0;
+    opponent.velocity.x = 0;
+    if(result == "won"){
+      player.current = PlayerState.idle;
+    }
+
+    final koImage = KO();
+    add(koImage);
+    Future.delayed(Duration(seconds: 3), (){
+      koImage.removeFromParent();
+    });
+  }
+
   JoystickComponent _createJoystick(){
     return JoystickComponent(
       priority: 100,
@@ -185,6 +201,7 @@ class PVPGame extends FlameGame with DragCallbacks, HasKeyboardHandlerComponents
         if(result == "lost"){
           player.death();
         }
+        endGame(result);
         break;
     }
   }

@@ -41,8 +41,8 @@ class MyAppState extends State<MyApp>{
 
   void _connect() async {
     try {
-      // 151.95.238.133:8080 indirizzo router
-      socket = await WebSocket.connect('ws://151.95.238.133:8080/ws');
+      // 151.95.182.162:8080 indirizzo router
+      socket = await WebSocket.connect('ws://151.95.182.162:8080/ws');
       broadcast = socket.asBroadcastStream();
       socketSub = broadcast.listen((data) async {
         String serverMessage = data.toString();

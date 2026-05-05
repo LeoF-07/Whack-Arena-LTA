@@ -3,6 +3,7 @@ import 'package:mysql_dart/mysql_dart.dart';
 class Character {
   final int id;
   final String name;
+  final int attackVelocity;
   final double weaponWidth;
   final double weaponHeight;
   final int damage;
@@ -11,6 +12,7 @@ class Character {
   Character({
     required this.id,
     required this.name,
+    required this.attackVelocity,
     required this.weaponWidth,
     required this.weaponHeight,
     required this.damage,
@@ -31,12 +33,13 @@ class Character {
 
   factory Character.fromDb(ResultSetRow row) {
   return Character(
-    id: int.parse(row.colAt(0)),
-    name: row.colAt(1),
-    weaponWidth: double.parse(row.colAt(4)),
-    weaponHeight: double.parse(row.colAt(5)),
-    damage: int.parse(row.colAt(2)),
-    lifePoints: int.parse(row.colAt(3)),
+    id: int.parse(row.colByName("id")),
+    name: row.colByName("name"),
+    attackVelocity: int.parse(row.colByName("attackVelocity")),
+    weaponWidth: double.parse(row.colByName("weaponWidth")),
+    weaponHeight: double.parse(row.colByName("weaponHeight")),
+    damage: int.parse(row.colByName("damage")),
+    lifePoints: int.parse(row.colByName("lifePoints")),
   );
 }
 

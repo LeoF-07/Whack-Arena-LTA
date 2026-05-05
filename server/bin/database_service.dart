@@ -17,7 +17,7 @@ class DatabaseService {
   }
 
   Future<List<Character>> getCharacterForServer() async {
-    final stmt = await conn.prepare('SELECT id, name, damage, lifePoints, weaponWidth, weaponHeight FROM characters');
+    final stmt = await conn.prepare('SELECT id, name, attackVelocity, damage, lifePoints, weaponWidth, weaponHeight FROM characters');
     final results = await stmt.execute([]);
     return results.rows.map((row) => Character.fromDb(row)).toList();
   }

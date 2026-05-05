@@ -245,6 +245,10 @@ class Player extends SpriteAnimationGroupComponent with HasGameReference<PVPGame
   }
 
   void _updatePlayerMovement(double dt){
+    if(!game.canMove){
+      return;
+    }
+
     if (hasJumped && isOnGround){ // Altrimenti salterebbe all'infinito
       _playerJump(dt);
     } else{

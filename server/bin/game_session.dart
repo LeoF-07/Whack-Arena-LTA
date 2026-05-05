@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'character_manager.dart';
+import 'character.dart';
 
 class GameSession{
   GameSession({required this.socket1, required this.socket2, required this.broadcast1, required this.broadcast2}){
@@ -16,9 +17,9 @@ class GameSession{
   int readyPlayers = 0;
 
   List<WebSocket> sockets = [];
-  List<String> characters = [];
+  List<Character> characters = [CharacterManager.instance.characters["Knight"]!, CharacterManager.instance.characters["Knight"]!];
 
-  List<int> healths = [];
+  List<int> healths = [0, 0];
 
   List<Map<String, dynamic>> lastSnapshots = [
     {
@@ -62,7 +63,8 @@ class GameSession{
          (playerFacing == "left" && (lastXOpponent <= lastXPlayer && lastXOpponent >= lastXPlayer - 30 && (lastYOpponent >= lastYPlayer - 30 && lastYOpponent <= lastYPlayer + 30)))
       ){
         print("Hit");
-        int damage = CharacterManager.instance.characters[characters[player]]!.damage;
+        //int damage = CharacterManager.instance.characters[characters[player]]!.damage;
+        int damage = characters[player].damage;
         sockets[(player + 1) % 2].add(jsonEncode({"message": "hurt", "direction": playerFacing, "damage": damage}));
         sockets[player].add(jsonEncode({"message": "hit", "damage": damage}));
         healths[(player + 1) % 2] -= damage;
@@ -73,7 +75,7 @@ class GameSession{
         }
       }
 
-      Future.delayed(Duration(milliseconds: (0.05 * 5 * 1000).toInt()), () => canAttack[player] = true);
+      Future.delayed(Duration(milliseconds: (0.05 * characters[player].attackVelocity * 1000).toInt()), () => canAttack[player] = true);
     }
   }
 
@@ -101,14 +103,14 @@ class GameSession{
       final decodedMessage = jsonDecode(data);
       if(decodedMessage['message'] == "character"){
         String character = decodedMessage['character'];
-        characters.add(character);
-        healths.add(CharacterManager.instance.characters[character]!.lifePoints);
+        characters[player] = CharacterManager.instance.get(character);
+        healths[player] = characters[player].lifePoints;
         readyPlayers++;
       }
       if(decodedMessage['message'] == "character" && readyPlayers == 2){
         int playerNumber = Random().nextInt(2);
-        String initFirst = jsonEncode({'message': 'prepare', 'playerNumber': playerNumber, 'opponent': characters[0]});
-        String initSecond = jsonEncode({'message': 'prepare', 'playerNumber': (playerNumber + 1) % 2, 'opponent': characters[1]});
+        String initFirst = jsonEncode({'message': 'prepare', 'playerNumber': playerNumber, 'opponent': characters[0].name});
+        String initSecond = jsonEncode({'message': 'prepare', 'playerNumber': (playerNumber + 1) % 2, 'opponent': characters[1].name});
         socket1.add(initFirst);
         socket2.add(initSecond);
         readyPlayers = 0;
